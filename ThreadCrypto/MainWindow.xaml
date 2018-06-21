@@ -22,7 +22,7 @@
 		<Grid Grid.Row="0">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="0.2*"/>
-				<ColumnDefinition/>
+				<ColumnDefinition/> 
 			</Grid.ColumnDefinitions>
 
 			<Button Grid.Column="0" Content="Файл" Margin="5" Command="{Binding FileSelect}"/>
