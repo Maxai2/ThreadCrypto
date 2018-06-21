@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,11 +24,15 @@ namespace ThreadCrypto
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        public MainWindow()
+        private bool isEncrypt = true;
+        public bool IsEncrypt
         {
-            InitializeComponent();
-
-            this.DataContext = this;
+            get => isEncrypt;
+            set
+            {
+                isEncrypt = value;
+                OnPropertyChanged();
+            }
         }
 
         private string filePath;
@@ -36,6 +42,28 @@ namespace ThreadCrypto
             set { filePath = value; OnPropertyChanged(); }
         }
 
+        private string encryptKey;
+        public string EncryptKey
+        {
+            get { return encryptKey; }
+            set { encryptKey = value; OnPropertyChanged(); }
+        }
+
+
+
+        OpenFileDialog OpenFile;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            this.DataContext = this;
+
+            OpenFile = new OpenFileDialog();
+            OpenFile.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+            OpenFile.RestoreDirectory = true;
+        }
 
         private ICommand fileSelect;
         public ICommand FileSelect
@@ -47,6 +75,10 @@ namespace ThreadCrypto
                     fileSelect = new RelayCommand(
                         (param) =>
                         {
+                            if (OpenFile.ShowDialog() == true)
+                            {
+                                FilePath = OpenFile.FileName;
+                            }        
 
                         });
                 }
