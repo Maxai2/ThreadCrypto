@@ -66,7 +66,7 @@ namespace ThreadCrypto
 
         //--------------------------------------------------------------------
 
-        private double progBarMaxVal = 1;
+        private double progBarMaxVal = 100;
         public double ProgBarMaxVal
         {
             get => progBarMaxVal;
@@ -175,11 +175,11 @@ namespace ThreadCrypto
                 {
                     array[i] = (byte)(array[i] ^ bytes[i % bytes.Length]);
 
-                    Thread.Sleep(50);
+                    Thread.Sleep(100);
 
                     Dispatcher.Invoke(() =>
                     {
-                        ProgressValue += (i * array.Length) / 100;
+                        ProgressValue += array.Length / 100;
                     });
                 }
 
