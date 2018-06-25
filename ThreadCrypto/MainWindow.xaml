@@ -44,7 +44,7 @@
 			<RadioButton VerticalAlignment="Center" Grid.Column="3" HorizontalAlignment="Center" Content="Расшифровать" FontSize="14" GroupName="IsCrypted" VerticalContentAlignment="Center"/>
 		</Grid>
 
-		<ProgressBar	Grid.Row="2" Margin="0 5" Value="{Binding ProgressValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+		<ProgressBar	Grid.Row="2" Margin="0 5" Value="{Binding ProgressValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding ProgBarMaxVal, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0"/>
 
 		<StackPanel Margin="5" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
 			<Button Content="Пуск" Width="70" Margin="5 0" Command="{Binding StartCom}"/>

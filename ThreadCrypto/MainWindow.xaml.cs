@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 
@@ -29,8 +30,12 @@ namespace ThreadCrypto
         private string filePath;
         public string FilePath
         {
-            get { return filePath; }
-            set { filePath = value; OnPropertyChanged(); }
+            get => filePath;
+            set
+            {
+                filePath = value;
+                OnPropertyChanged();
+            }
         }
 
         //--------------------------------------------------------------------
@@ -38,8 +43,12 @@ namespace ThreadCrypto
         private string encryptKey;
         public string EncryptKey
         {
-            get { return encryptKey; }
-            set { encryptKey = value; OnPropertyChanged(); }
+            get => encryptKey; 
+            set
+            {
+                encryptKey = value;
+                OnPropertyChanged();
+            }
         }
 
         //--------------------------------------------------------------------
@@ -51,6 +60,19 @@ namespace ThreadCrypto
             set
             {
                 progressValue = value;
+                OnPropertyChanged();
+            }
+        }
+
+        //--------------------------------------------------------------------
+
+        private double progBarMaxVal = 1;
+        public double ProgBarMaxVal
+        {
+            get => progBarMaxVal;
+            set
+            {
+                progBarMaxVal = value;
                 OnPropertyChanged();
             }
         }
@@ -106,7 +128,19 @@ namespace ThreadCrypto
                     startCom = new RelayCommand(
                         (param) =>
                         {
-                            EcryptDecryptFile(true);
+                            var task = new Thread(() =>
+                            {
+                                EcryptDecryptFile(IsEncrypt);
+                            });
+                            
+                            task.Start();
+                        }, 
+                        (param) =>
+                        {
+                            if (EncryptKey == null || FilePath == null)
+                                return false;
+
+                            return true;
                         });
                 }
 
@@ -114,25 +148,56 @@ namespace ThreadCrypto
             }
         }
 
-
-
         //--------------------------------------------------------------------
 
         string fileText;
 
         void EcryptDecryptFile(bool mode)
         {
+            //var att = File.GetAttributes(FilePath);
+
+            //if (att == FileAttributes.Encrypted)
+            //{
+
+            //}
+
             using (FileStream fstream = File.OpenRead(FilePath))
             {
-                
+                byte[] bytes = Encoding.UTF8.GetBytes(EncryptKey);
+
                 byte[] array = new byte[fstream.Length];
                 
                 fstream.Read(array, 0, array.Length);
 
+                ProgBarMaxVal = array.Length;
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = (byte)(array[i] ^ bytes[i % bytes.Length]);
+
+                    Thread.Sleep(50);
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        ProgressValue += (i * array.Length) / 100;
+                    });
+                }
+
                 fileText = Encoding.Default.GetString(array);
             }
 
-            MessageBox.Show(fileText);
+            File.WriteAllText(FilePath, String.Empty);
+
+            using (FileStream fstream = new FileStream(FilePath, FileMode.OpenOrCreate))
+            {
+                byte[] array = System.Text.Encoding.Default.GetBytes(fileText);
+
+                fstream.Write(array, 0, array.Length);
+            }
+
+            MessageBox.Show("Done");
+
+            //File.SetAttributes(FilePath, FileAttributes.Encrypted);
         }
 
         //--------------------------------------------------------------------
