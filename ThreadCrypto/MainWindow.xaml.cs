@@ -43,7 +43,7 @@ namespace ThreadCrypto
         private string encryptKey;
         public string EncryptKey
         {
-            get => encryptKey; 
+            get => encryptKey;
             set
             {
                 encryptKey = value;
@@ -108,7 +108,7 @@ namespace ThreadCrypto
                             if (OpenFile.ShowDialog() == true)
                             {
                                 FilePath = OpenFile.FileName;
-                            }        
+                            }
                         });
                 }
 
@@ -117,6 +117,8 @@ namespace ThreadCrypto
         }
 
         //--------------------------------------------------------------------
+
+        string fileText;
 
         private ICommand startCom;
         public ICommand StartCom
@@ -131,10 +133,11 @@ namespace ThreadCrypto
                             var task = new Thread(() =>
                             {
                                 EcryptDecryptFile(IsEncrypt);
+
                             });
-                            
+
                             task.Start();
-                        }, 
+                        },
                         (param) =>
                         {
                             if (EncryptKey == null || FilePath == null)
@@ -150,54 +153,79 @@ namespace ThreadCrypto
 
         //--------------------------------------------------------------------
 
-        string fileText;
-
         void EcryptDecryptFile(bool mode)
         {
-            //var att = File.GetAttributes(FilePath);
+            var att = File.GetAttributes(FilePath);
 
-            //if (att == FileAttributes.Encrypted)
+            //if ((att == FileAttributes.Archive && IsEncrypt == true) || (att == FileAttributes.Encrypted && IsEncrypt == false))
             //{
-
-            //}
-
-            using (FileStream fstream = File.OpenRead(FilePath))
-            {
-                byte[] bytes = Encoding.UTF8.GetBytes(EncryptKey);
-
-                byte[] array = new byte[fstream.Length];
-                
-                fstream.Read(array, 0, array.Length);
-
-                ProgBarMaxVal = array.Length;
-
-                for (int i = 0; i < array.Length; i++)
+                using (FileStream fstream = File.OpenRead(FilePath))
                 {
-                    array[i] = (byte)(array[i] ^ bytes[i % bytes.Length]);
-
-                    Thread.Sleep(100);
-
                     Dispatcher.Invoke(() =>
                     {
-                        ProgressValue += array.Length / 100;
+                        ProgressValue = 0;
                     });
+
+                    byte[] bytes = Encoding.UTF8.GetBytes(EncryptKey);
+
+                    byte[] array = new byte[fstream.Length];
+
+                    fstream.Read(array, 0, array.Length);
+
+                    ProgBarMaxVal = array.Length;
+
+                    var step = array.Length / 100.0;
+
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = (byte)(array[i] ^ bytes[i % bytes.Length]);
+
+                        Thread.Sleep(5);
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            ProgressValue += 1;
+                        });
+                    }
+
+                    fileText = Encoding.Default.GetString(array);
                 }
 
-                fileText = Encoding.Default.GetString(array);
-            }
+                File.WriteAllText(FilePath, String.Empty);
 
-            File.WriteAllText(FilePath, String.Empty);
+                using (FileStream fstream = new FileStream(FilePath, FileMode.OpenOrCreate))
+                {
+                    byte[] array = System.Text.Encoding.Default.GetBytes(fileText);
 
-            using (FileStream fstream = new FileStream(FilePath, FileMode.OpenOrCreate))
-            {
-                byte[] array = System.Text.Encoding.Default.GetBytes(fileText);
+                    fstream.Write(array, 0, array.Length);
+                }
 
-                fstream.Write(array, 0, array.Length);
-            }
+            MessageBox.Show("asdfasdf");
 
-            MessageBox.Show("Done");
+            //    if (IsEncrypt)
+            //    {
+            //        File.SetAttributes(FilePath, FileAttributes.Encrypted);
+            //        MessageBox.Show("File is encrypted");
+            //    }
+            //    else
+            //    {
+            //        File.SetAttributes(FilePath, FileAttributes.Archive);
+            //        MessageBox.Show("File is decrypted");
+            //    }
+            //}
+            //else
+            //if (att == FileAttributes.Encrypted && IsEncrypt == true)
+            //{
+            //    MessageBox.Show("File already encrypted");
+            //    return;
+            //}
+            //else
+            //if (att == FileAttributes.Archive && IsEncrypt == false)
+            //{
+            //    MessageBox.Show("File is not encrypted");
+            //    return;
+            //}
 
-            //File.SetAttributes(FilePath, FileAttributes.Encrypted);
         }
 
         //--------------------------------------------------------------------
