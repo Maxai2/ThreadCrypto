@@ -16,8 +16,6 @@ namespace ThreadCrypto
     {
         private object pause = new object();
         private bool interrupt = false;
-        private bool finish = false;
-
 
         private bool isEncrypt = true;
         public bool IsEncrypt
@@ -277,13 +275,12 @@ namespace ThreadCrypto
                         {
                             array[i] = (byte)(array[i] ^ bytes[i % bytes.Length]);
 
-
                             Dispatcher.Invoke(() =>
                             {
-                                ProgressValue += 1;
+                                ProgressValue += 100;
                             });
                         }
-                        Thread.Sleep(5);
+                        Thread.Sleep(2);
                     }
 
                     fileText = Encoding.Default.GetString(array);
